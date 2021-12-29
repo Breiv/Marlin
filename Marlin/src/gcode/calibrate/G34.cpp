@@ -39,15 +39,14 @@
 void GcodeSuite::G34() {
 
   // Home before the alignment procedure
-  home_if_needed();
-
-  TERN_(HAS_LEVELING, TEMPORARY_BED_LEVELING_STATE(false));
+  if (!all_axes_known()) home_all_axes();
 
   SET_SOFT_ENDSTOP_LOOSE(true);
+  TEMPORARY_BED_LEVELING_STATE(false);
   TemporaryGlobalEndstopsState unlock_z(false);
 
   #ifdef GANTRY_CALIBRATION_COMMANDS_PRE
-    process_subcommands_now(F(GANTRY_CALIBRATION_COMMANDS_PRE));
+    gcode.process_subcommands_now_P(PSTR(GANTRY_CALIBRATION_COMMANDS_PRE));
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Sub Commands Processed");
   #endif
 
@@ -64,7 +63,7 @@ void GcodeSuite::G34() {
 
   // Move Z to pounce position
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Setting Z Pounce");
-  do_blocking_move_to_z(zpounce, homing_feedrate(Z_AXIS));
+  do_blocking_move_to_z(zpounce, MMM_TO_MMS(HOMING_FEEDRATE_Z));
 
   // Store current motor settings, then apply reduced value
 
@@ -85,7 +84,7 @@ void GcodeSuite::G34() {
     const float target_current = parser.floatval('S', GANTRY_CALIBRATION_CURRENT);
     const float previous_current = dac_amps(Z_AXIS, target_current);
     stepper_dac.set_current_value(Z_AXIS, target_current);
-  #elif HAS_MOTOR_CURRENT_I2C
+  #elif ENABLED(HAS_MOTOR_CURRENT_I2C)
     const uint16_t target_current = parser.intval('S', GANTRY_CALIBRATION_CURRENT);
     previous_current = dac_amps(Z_AXIS);
     digipot_i2c.set_current(Z_AXIS, target_current)
@@ -129,7 +128,7 @@ void GcodeSuite::G34() {
     stepper.set_digipot_current(1, previous_current);
   #elif HAS_MOTOR_CURRENT_DAC
     stepper_dac.set_current_value(Z_AXIS, previous_current);
-  #elif HAS_MOTOR_CURRENT_I2C
+  #elif ENABLED(HAS_MOTOR_CURRENT_I2C)
     digipot_i2c.set_current(Z_AXIS, previous_current)
   #elif HAS_TRINAMIC_CONFIG
     #if AXIS_IS_TMC(Z)
@@ -148,7 +147,7 @@ void GcodeSuite::G34() {
 
   #ifdef GANTRY_CALIBRATION_COMMANDS_POST
     if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Running Post Commands");
-    process_subcommands_now(F(GANTRY_CALIBRATION_COMMANDS_POST));
+    gcode.process_subcommands_now_P(PSTR(GANTRY_CALIBRATION_COMMANDS_POST));
   #endif
 
   SET_SOFT_ENDSTOP_LOOSE(false);

@@ -33,12 +33,13 @@
  *    case light
  */
 
-#define REQUIRE_MEGA2560
-#include "env_validate.h"
+#if NOT_TARGET(__AVR_ATmega2560__)
+  #error "Oops! Select 'Arduino/Genuino Mega or Mega 2560' in 'Tools > Board.'"
+#endif
 
 #define BOARD_INFO_NAME         "Ultimaker 2.x"
 #define DEFAULT_MACHINE_NAME    "Ultimaker"
-#define DEFAULT_SOURCE_CODE_URL "github.com/Ultimaker/Marlin"
+#define DEFAULT_SOURCE_CODE_URL "https://github.com/Ultimaker/Marlin"
 
 //
 // Limit Switches
@@ -98,7 +99,7 @@
 #endif
 
 #ifndef E0_AUTO_FAN_PIN
-  #define E0_AUTO_FAN_PIN                     69
+  #define E0_AUTO_FAN_PIN                     77
 #endif
 
 //

@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
-
 #include "../inc/MarlinConfigPre.h"
 
 #if ENABLED(DIRECT_STEPPING)
@@ -174,14 +173,14 @@ namespace DirectStepping {
   template <typename Cfg>
   void SerialPageManager<Cfg>::write_responses() {
     if (fatal_error) {
-      kill(GET_TEXT_F(MSG_BAD_PAGE));
+      kill(GET_TEXT(MSG_BAD_PAGE));
       return;
     }
 
     if (!page_states_dirty) return;
     page_states_dirty = false;
 
-    SERIAL_CHAR(Cfg::CONTROL_CHAR);
+    SERIAL_ECHO(Cfg::CONTROL_CHAR);
     constexpr int state_bits = 2;
     constexpr int n_bytes = Cfg::NUM_PAGES >> state_bits;
     volatile uint8_t bits_b[n_bytes] = { 0 };
@@ -193,10 +192,10 @@ namespace DirectStepping {
     uint8_t crc = 0;
     for (uint8_t i = 0 ; i < n_bytes ; i++) {
       crc ^= bits_b[i];
-      SERIAL_CHAR(bits_b[i]);
+      SERIAL_ECHO(bits_b[i]);
     }
 
-    SERIAL_CHAR(crc);
+    SERIAL_ECHO(crc);
     SERIAL_EOL();
   }
 
